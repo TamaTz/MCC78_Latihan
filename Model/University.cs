@@ -5,23 +5,19 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Testing.Context;
 
-namespace Testing
+namespace Testing.Model
 {
-    public class Universities
+    public class University
     {
+        public int id { get; set; }
+        public string name { get; set; }
 
-        private static readonly string connectionString =
-        "Data Source=WINDOWS-8FL63UC;Database=bookingservice;Integrated Security=True;Connect Timeout=30;Encrypt=False;";
-
-        public int id {get;set;}
-        public string name { get;set;}
-
-        public static int InsertUniversity(Universities university)
+        public int Insert(University university)
         {
             int result = 0;
-
-            using var connection = new SqlConnection(connectionString);
+            using var connection = MyConnection.Get();
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -55,10 +51,10 @@ namespace Testing
             return result;
         }
 
-        public static List<Universities> GetUniversities()
+        public List<University> GetUniversities()
         {
-            var universities = new List<Universities>();
-            using SqlConnection connection = new SqlConnection(connectionString);
+            var universities = new List<University>();
+            using SqlConnection connection = MyConnection.Get();
             try
             {
                 SqlCommand command = new SqlCommand();
@@ -67,11 +63,11 @@ namespace Testing
                 connection.Open();
 
                 using SqlDataReader reader = command.ExecuteReader();
-                if(reader.HasRows)
+                if (reader.HasRows)
                 {
                     while (reader.Read())
                     {
-                        var university = new Universities();
+                        var university = new University();
                         university.id = reader.GetInt32(0);
                         university.name = reader.GetString(1);
 
@@ -88,13 +84,13 @@ namespace Testing
             {
                 connection.Close();
             }
-            return new List<Universities>();
+            return new List<University>();
         }
 
-        public static int UpdateUniversity(Universities university)
+        public int Update(University university)
         {
             int result = 0;
-            using var connection = new SqlConnection(connectionString);
+            using var connection = MyConnection.Get();
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -132,10 +128,10 @@ namespace Testing
             return result;
         }
 
-        public static int DeleteUniversity(Universities university)
+        public int Delete(University university)
         {
             int result = 0;
-            using var connection = new SqlConnection(connectionString);
+            using var connection = MyConnection.Get();
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -165,6 +161,18 @@ namespace Testing
                 connection.Close();
             }
             return result;
+        }
+
+        public int GetUnId()
+        {
+            using var connection = MyConnection.Get();
+            connection.Open();
+            SqlCommand command = new SqlCommand("SELECT TOP 1 id FROM tbP_m_universities ORDER BY id DESC", connection);
+
+            int id = Convert.ToInt32(command.ExecuteScalar());
+            connection.Close();
+
+            return id;
         }
     }
 

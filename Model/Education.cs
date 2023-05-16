@@ -6,24 +6,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
+using Testing.Context;
+using System.Transactions;
 
-namespace Testing
+namespace Testing.Model
 {
-    public class Educations
+    public class Education
     {
-        private static readonly string connectionString =
-        "Data Source=WINDOWS-8FL63UC;Database=bookingservice;Integrated Security=True;Connect Timeout=30;Encrypt=False;";
-
         public int id { get; set; }
         public string major { get; set; }
         public string degree { get; set; }
         public string gpa { get; set; }
-        public int university_id { get; set; }
+        public int UniversityId { get; set; }
 
-        public static int InsertEducation(Educations educations)
+        public int Insert(Education educations)
         {
             int result = 0;
-            using var connection = new SqlConnection(connectionString);
+            using var connection = MyConnection.Get();
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -58,7 +57,7 @@ namespace Testing
                 var zuniversity_id = new SqlParameter();
                 zuniversity_id.ParameterName = "@university_id";
                 zuniversity_id.SqlDbType = SqlDbType.Int;
-                zuniversity_id.Value = educations.university_id;
+                zuniversity_id.Value = educations.UniversityId;
                 command.Parameters.Add(zuniversity_id);
 
                 result = command.ExecuteNonQuery();
@@ -77,10 +76,10 @@ namespace Testing
             return result;
         }
 
-        public static List<Educations> GetEducations()
+        public List<Education> GetEducation()
         {
-            var educations = new List<Educations>();
-            using SqlConnection connection = new SqlConnection(connectionString);
+            var educations = new List<Education>();
+            using SqlConnection connection = MyConnection.Get();
             try
             {
                 SqlCommand command = new SqlCommand();
@@ -93,12 +92,12 @@ namespace Testing
                 {
                     while (reader.Read())
                     {
-                        var education = new Educations();
+                        var education = new Education();
                         education.id = reader.GetInt32(0);
                         education.major = reader.GetString(1);
                         education.degree = reader.GetString(2);
                         education.gpa = reader.GetString(3);
-                        education.university_id = reader.GetInt32(4);
+                        education.UniversityId = reader.GetInt32(4);
 
                         educations.Add(education);
                     }
@@ -113,13 +112,13 @@ namespace Testing
             {
                 connection.Close();
             }
-            return new List<Educations>();
+            return new List<Education>();
         }
 
-        public static int UpdateEducation(Educations educations)
+        public int Update(Education educations)
         {
             int result = 0;
-            using var connection = new SqlConnection(connectionString);
+            using var connection = MyConnection.Get();
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -144,7 +143,7 @@ namespace Testing
 
                 var zuniversity_id = new SqlParameter();
                 zuniversity_id.ParameterName = "univ_id";
-                zuniversity_id.Value = educations.university_id;
+                zuniversity_id.Value = educations.UniversityId;
 
                 var zid = new SqlParameter();
                 zid.ParameterName = "@id";
@@ -171,10 +170,10 @@ namespace Testing
             }
             return result;
         }
-        public static int DeleteEducation(Educations educations)
+        public int DeleteEducation(Education educations)
         {
             int result = 0;
-            using var connection = new SqlConnection(connectionString);
+            using var connection = MyConnection.Get();
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -204,6 +203,19 @@ namespace Testing
                 connection.Close();
             }
             return result;
+        }
+
+        public int getEduId()
+        {
+            using var connection = MyConnection.Get();
+            connection.Open();
+
+            var command = new SqlCommand("SELECT TOP 1 id FROM tb_m_educations ORDER BY id DESC", connection);
+
+            int id = Convert.ToInt32(command.ExecuteScalar());
+            connection.Close();
+
+            return id;
         }
     }
 }

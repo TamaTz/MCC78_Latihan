@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
@@ -6,25 +7,22 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks.Sources;
-using Testing;
+using Testing.Controller;
+using Testing.Model;
+using Testing.View;
 
 public class Program
 {
-    private static readonly string connectionString =
-        "Data Source=WINDOWS-8FL63UC;Database=bookingservice;Integrated Security=True;Connect Timeout=30;Encrypt=False;";
 
-    
-    public static void Menu()
-    {
-        Console.WriteLine("\n Menu");
-        Console.WriteLine("1. Insert");
-        Console.WriteLine("2. Select");
-        Console.WriteLine("3. Update");
-        Console.WriteLine("4. Delete");
-        Console.WriteLine("5. Insert Semua Data");
-        Console.WriteLine("6. Exit");
-        Console.WriteLine("\nPilih Menu : ");
-    }
+    private static menuView MenuView = new();
+    private static Education edu = new Education();
+    private static Employee emplo = new Employee();
+    private static Profiling prof = new Profiling();
+    private static University uni = new University();
+    private static educationController educationController = new();
+    private static universityController universityController = new();
+    private static employeeController employeeController = new();
+    private static profilingController profilingController = new();
 
     public static void Main()
     {
@@ -32,209 +30,280 @@ public class Program
         int pilihan;
         do
         {
-            Menu();
+            MenuView.Menu();
             pilihan = Convert.ToInt32(Console.ReadLine());
             switch (pilihan)
             {
                 case 1:
-                    Console.WriteLine("\n Pilih tabel yang akan di insert datanya");
-                    Console.WriteLine("1. University");
-                    Console.WriteLine("2. Education");
-                    Console.WriteLine("Pilih Tabel : ");
-                    int tabel = Convert.ToInt32(Console.ReadLine());
-                    if (tabel == 1)
-                    {
-                        var university = new Universities();
-                        Console.WriteLine("Masukkan Nama : ");
-                        string nama = Console.ReadLine();
-                        university.name = nama;
-
-                        var result = Universities.InsertUniversity(university);
-                        if (result > 0)
-                        {
-                            Console.WriteLine("Insert Success");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Insert Failed");
-                        }
-                    }
-                    else if (tabel == 2)
-                    {
-                        var education = new Educations();
-                        Console.WriteLine("Masukkan Major : ");
-                        var major = Console.ReadLine();
-                        education.major = major;
-
-                        Console.WriteLine("Masukkan Degree : ");
-                        var degree = Console.ReadLine();
-                        education.degree = degree;
-
-                        Console.WriteLine("Masukkan GPA : ");
-                        var gpa = Console.ReadLine();
-                        education.gpa = gpa;
-
-                        Console.WriteLine("University ID : ");
-                        var university_id = Convert.ToInt32(Console.ReadLine());
-                        education.university_id = university_id;
-
-                        var result = Educations.InsertEducation(education);
-                        if (result > 0)
-                        {
-                            Console.WriteLine("Insert Success");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Insert Failed");
-                        }
-                    }
-                    else
-                    {
-
-                    }
+                    MenuView.Insert();
+                    int tabel1 = Convert.ToInt32(Console.ReadLine());
+                    InsertTabel(tabel1);
                     break;
                 case 2:
-                    Console.WriteLine("\n Pilih tabel yang akan di insert datanya");
-                    Console.WriteLine("1. University");
-                    Console.WriteLine("2. Education");
-                    Console.WriteLine("Pilih Tabel : ");
+                    MenuView.Select();
                     int tabel2 = Convert.ToInt32(Console.ReadLine());
-                    if (tabel2 == 1)
-                    {
-                        Console.WriteLine("SELECT ALL");
-                        var results = Universities.GetUniversities();
-                        foreach (var result in results)
-                        {
-                            Console.WriteLine("Id : " + result.id);
-                            Console.WriteLine("Name : " + result.name);
-                        }
-                    }
-                    if (tabel2 == 2)
-                    {
-                        Console.WriteLine("SELECT ALL");
-                        var results = Educations.GetEducations();
-                        foreach (var result in results)
-                        {
-                            Console.WriteLine("Id : " + result.id);
-                            Console.WriteLine("Major  : " + result.major);
-                            Console.WriteLine("Degree  : " + result.degree);
-                            Console.WriteLine("GPA  : " + result.gpa);
-                            Console.WriteLine("University ID : " + result.university_id);
-                        }
-                    }
+                    SelectTabel(tabel2);
                     break;
                 case 3:
-                    Console.WriteLine("\n Pilih tabel yang akan di insert datanya");
-                    Console.WriteLine("1. University");
-                    Console.WriteLine("2. Education");
-                    Console.WriteLine("Pilih Tabel : ");
+                    MenuView.Update();
                     int tabel3 = Convert.ToInt32(Console.ReadLine());
-                    if (tabel3 == 1)
-                    {
-                        var university = new Universities();
-
-                        Console.WriteLine("Masukkan ID :");
-                        int id = Convert.ToInt32(Console.ReadLine());
-                        university.id = id;
-
-                        Console.WriteLine("Masukkan Nama : ");
-                        var name3 = Console.ReadLine();
-                        university.name = name3;
-
-                        var result = Universities.UpdateUniversity(university);
-                        if (result > 0)
-                        {
-                            Console.WriteLine("Update Success");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Update Failed");
-                        }
-                    }
-
-                    if (tabel3 == 2)
-                    {
-                        var education = new Educations();
-                        Console.WriteLine("Masukkan ID : ");
-                        int id = Convert.ToInt32(Console.ReadLine());
-                        Console.WriteLine("Major  : ");
-                        string major = Console.ReadLine();
-                        Console.WriteLine("Degree  : ");
-                        string degree = Console.ReadLine();
-                        Console.WriteLine("GPA  : ");
-                        string gpa = Console.ReadLine();
-                        Console.WriteLine("University  ID  : ");
-                        int univ_id = Convert.ToInt32(Console.ReadLine());
-
-                        education.id = id;
-                        education.major = major;
-                        education.degree = degree;
-                        education.gpa = gpa;
-                        education.university_id = univ_id;
-
-                        var results = Educations.UpdateEducation(education);
-                        if (results > 0)
-                        {
-                            Console.WriteLine("Update Success");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Update Failed");
-                        }
-
-                    }
+                    UpdateTabel(tabel3);
                     break;
                 case 4:
-                    Console.WriteLine("\n Pilih tabel yang akan di insert datanya");
-                    Console.WriteLine("1. University");
-                    Console.WriteLine("2. Education");
-                    Console.WriteLine("Pilih Tabel : ");
+                    MenuView.Delete();
                     int tabel4 = Convert.ToInt32(Console.ReadLine());
-                    if (tabel4 == 1)
-                    {
-                        var university = new Universities();
-
-                        Console.WriteLine("Masukkan ID : ");
-                        int id = Convert.ToInt32(Console.ReadLine());
-                        university.id = id;
-
-                        var result = Universities.DeleteUniversity(university);
-                        if (result > 0)
-                        {
-                            Console.WriteLine("Delete Success");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Delete Failed");
-                        }
-                    }
-                    else if (tabel4 == 2)
-                    {
-                        var education = new Educations();
-
-                        Console.WriteLine("Masukkan ID : ");
-                        int id = Convert.ToInt32(Console.ReadLine());
-                        education.id = id;
-
-                        var result = Educations.DeleteEducation(education);
-                        if (result > 0)
-                        {
-                            Console.WriteLine("Delete Success");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Delete Failed");
-                        }
-                    }
+                    DeleteTabel(tabel4);
                     break;
                 case 5:
-                    Employees.CetakEmployee();
+                    Console.WriteLine("");
                     break;
                 default:
                     Console.WriteLine("Input Invalid");
                     break;
             }
-        } while (pilihan != 6);
+        } while (pilihan != 5);
+
+    }
+    public static void InsertTabel(int tabel1)
+    {
+        switch (tabel1)
+        { 
+            case 1:
+                Console.WriteLine("=========================================");
+                var university = new University();
+                Console.WriteLine("Masukkan ID : ");
+                int id = Convert.ToInt32(Console.ReadLine());
+                university.id = id; 
+                Console.Write("Masukkan Nama : ");
+                string nama = Console.ReadLine();
+                university.name = nama;
+
+                universityController.Insert(university);
+                break;    
+            case 2:
+                Console.WriteLine("========================================");
+                Console.WriteLine("Masukkan Major  :  ");
+                var major = Console.ReadLine();
+                edu.major = major;
+
+                Console.WriteLine("Masukkan Degree  :  ");
+                var degree = Console.ReadLine();
+                edu.degree = degree;
+
+                Console.WriteLine("Masukkan GPA  :  ");
+                var gpa = Console.ReadLine();
+                edu.gpa = gpa;
+
+                Console.WriteLine("University ID  :  ");
+                var univid = Convert.ToInt32(Console.ReadLine());
+                edu.UniversityId = univid;
+                break;
+            case 3:
+                Console.WriteLine("========================================");
+                InsertAll();
+                break;
+        }
+    }
+    public static void SelectTabel(int table2)
+    {
+        switch (table2)
+        {
+            case 1 :
+                universityController.GetAll();
+                break;
+            case 2 :
+                educationController.GetAll();
+                break;
+            case 3 :
+                employeeController.GetAll();
+                break;
+            case 4 :
+                profilingController.GetAll();
+                break;
+            case 5:
+                LinqAllData();
+                break;
+            default:
+                Console.WriteLine("Input Salah");
+                break;
+        }
     }
 
+    public static void UpdateTabel(int tabel3)
+    {
+        switch (tabel3)
+        {
+            case 1 :
+                var university = new University();
+                Console.Write("\nMasukkan ID : ");
+                int id = Convert.ToInt32(Console.ReadLine());
+                university.id = id;
+
+                Console.Write("Masukkan Nama : ");
+                var name = Console.ReadLine();
+                university.name = name;
+
+                universityController.Update(university);
+                break;
+            case 2 :
+                var education = new Education();
+                Console.WriteLine("Masukkan ID : ");
+                education.id = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("Major  : ");
+                education.major = Console.ReadLine();
+                Console.WriteLine("Degree  : ");
+                education.degree = Console.ReadLine();
+                Console.WriteLine("GPA  : ");
+                education.gpa = Console.ReadLine();
+                Console.WriteLine("University  ID  : ");
+                education.UniversityId = Convert.ToInt32(Console.ReadLine());
+                
+                educationController.Update(education);
+                break;
+            default :
+                Console.WriteLine("Invalid Input");
+                break;
+        }
+    }
+
+    public static void DeleteTabel(int tabel4)
+    {
+        switch (tabel4)
+        {
+            case 1:
+                var university = new University();
+
+                Console.WriteLine("Masukkan ID : ");
+                university.id = Convert.ToInt32(Console.ReadLine());
+
+                universityController.Delete(university);
+                break;
+            case 2 :
+                var education = new Education();
+
+                Console.WriteLine("Masukkan ID : ");
+                education.id = Convert.ToInt32(Console.ReadLine());
+
+                educationController.Delete(education);
+                break;
+        }
+    }
+
+    public static void InsertAll()
+    {
+        
+           var employee = new Employee();
+           var profiling = new Profiling();
+           var education = new Education();
+           var university = new University();
+
+           //Employee
+           Console.Write("NIK : ");
+           var niks = Console.ReadLine();
+           employee.nik = niks;
+
+           Console.Write("First Name : ");
+           employee.first_name = Console.ReadLine();
+
+           Console.Write("Last Name : ");
+           employee.last_name = Console.ReadLine();
+
+           Console.Write("Birthdate  : ");
+           employee.birthdate = DateTime.Parse(Console.ReadLine());
+
+           Console.Write("Gender  : ");
+           employee.gender = Console.ReadLine();
+
+           Console.Write("Hiring Date  : ");
+           employee.hiring_date = DateTime.Parse(Console.ReadLine());
+
+           Console.Write("Email  : ");
+           employee.email = Console.ReadLine();
+
+           Console.Write("Phone Number  : ");
+           employee.phone_number = Console.ReadLine();
+
+           Console.Write("Department ID  : ");
+           employee.department_id = Console.ReadLine();
+
+           //Education
+           Console.Write("Major  :  ");
+           education.major = Console.ReadLine();
+
+           Console.Write("Degree  :  ");
+           education.degree = Console.ReadLine();
+
+           Console.Write("GPA  :  ");
+           education.gpa = Console.ReadLine();
+
+           Console.Write("University Name  :  ");
+           education.major = Console.ReadLine();
+
+           var result = employee.Insert(employee);
+           if (result > 0)
+           {
+               Console.WriteLine("Insert Success");
+           }
+           else
+           {
+               Console.WriteLine("Insert Faied");
+           }
+
+            employeeController.Insert(employee);
+            universityController.Insert(university);
+
+            education.UniversityId = university.GetUnId();
+            education.Insert(education);
+            educationController.Insert(education);
+
+            profiling.EmId = employee.GetIdEmp(niks);
+            profiling.EmId = employee.GetIdEmp(niks);
+
+            profiling.EdId = education.getEduId();
+            profilingController.Insert(profiling);
+    }
+
+    public static void LinqAllData()
+    {
+        Console.WriteLine("Get ALL");
+        
+        var educationGet = edu.GetEducation();
+        var employeesGet = Employee.GetEmployee();
+        var profilingGet = prof.GetProfiling();
+        var universityGet = uni.GetUniversities();
+
+        var GetAll = from Employees in employeesGet
+                     join prof in profilingGet on Employees.id equals prof.EmId
+                     join edu in educationGet on prof.EdId equals edu.id
+                     join univ in universityGet on edu.UniversityId equals univ.id
+                     select new
+                     {
+                         NIK = Employees.nik,
+                         Fullname = Employees.first_name + " " + Employees.last_name,
+                         BirthDate = Employees.birthdate,
+                         Gender = Employees.gender,
+                         HiringDate = Employees.hiring_date,
+                         Email = Employees.email,
+                         PhoneNumber = Employees.phone_number,
+                         Major = edu.major,
+                         Degree = edu.degree,
+                         GPA = edu.gpa,
+                         University = univ.name
+                     };
+        foreach (var get in GetAll)
+        {
+            Console.WriteLine($"NIK = {get.NIK}");
+            Console.WriteLine($"FullName = {get.Fullname}");
+            Console.WriteLine($"Birthdate = {get.BirthDate}");
+            Console.WriteLine($"Gender = {get.Gender}");
+            Console.WriteLine($"HiringDate = {get.HiringDate}");
+            Console.WriteLine($"Email = {get.Email}");
+            Console.WriteLine($"PhoneNumber = {get.PhoneNumber}");
+            Console.WriteLine($"Major = {get.Major}");
+            Console.WriteLine($"Degree = {get.Degree}");
+            Console.WriteLine($"GPA = {get.GPA}");
+            Console.WriteLine($"University Name = {get.University}");
+            Console.WriteLine("===========================================");
+        }
+    }
 }

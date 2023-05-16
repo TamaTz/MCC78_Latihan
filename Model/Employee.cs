@@ -6,15 +6,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Testing.Context;
 
-namespace Testing
+namespace Testing.Model
 {
-    public class Employees
+    public class Employee
     {
         private static readonly string connectionString =
         "Data Source=WINDOWS-8FL63UC;Database=bookingservice;Integrated Security=True;Connect Timeout=30;Encrypt=False;";
 
-        public int id { get; set; }
+        public string id { get; set; }
         public string nik { get; set; }
         public string first_name { get; set; }
         public string last_name { get; set; }
@@ -25,10 +26,10 @@ namespace Testing
         public string phone_number { get; set; }
         public string department_id { get; set; }
 
-        public static int InsertEmployee(Employees employees)
+        public int Insert(Employee employees)
         {
             int result = 0;
-            using var connection = new  SqlConnection(connectionString);
+            using var connection = new SqlConnection(connectionString);
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -117,16 +118,16 @@ namespace Testing
             return result;
         }
 
-        public static string GetIdEmp(string NIK)
+        public string GetIdEmp(string NIK)
         {
-            using SqlConnection connection = new SqlConnection(connectionString);
+            using SqlConnection connection = MyConnection.Get();
             connection.Open();
 
             SqlCommand command = new SqlCommand("SELECT id FROM tb_m_employees WHERE nik = (@nik)", connection);
 
             var niks = new SqlParameter();
             niks.ParameterName = "@nik";
-            niks.Value =  NIK;
+            niks.Value = NIK;
             command.Parameters.Add(niks);
 
             string lastIdEmp = Convert.ToString(command.ExecuteScalar());
@@ -135,97 +136,48 @@ namespace Testing
             return lastIdEmp;
         }
 
-        public static int GetEdUnId(int pilihan)
+        public static List<Employee> GetEmployee()
         {
-            using var connection = new SqlConnection(connectionString);
-            connection.Open();
-            if (pilihan == 1)
+            var employees = new List<Employee>();
+            using SqlConnection connection = MyConnection.Get();
+            try
             {
-                SqlCommand command = new SqlCommand("SELECT TOP 1 id FROM tb_m_universities ORDER BY id DESC", connection);
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandText = "SELECT * FROM tb_m_employees";
+                connection.Open();
 
-                int id = Convert.ToInt32(command.ExecuteScalar());
+                using SqlDataReader reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        var employeess = new Employee();
+                        employeess.id = reader.GetGuid(0).ToString();
+                        employeess.nik = reader.GetString(1);
+                        employeess.first_name = reader.GetString(2);
+                        employeess.last_name = reader.GetString(3);
+                        employeess.birthdate = reader.GetDateTime(4);
+                        employeess.gender = reader.GetString(5);
+                        employeess.hiring_date = reader.GetDateTime(6);
+                        employeess.email = reader.GetString(7);
+                        employeess.phone_number = reader.GetString(8);
+                        employeess.department_id = reader.GetString(9);
+
+                        employees.Add(employeess);
+                    }
+                    return employees;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
                 connection.Close();
-
-                return id;
             }
-            else
-            {
-                SqlCommand command = new SqlCommand("SELECT TOP 1 id FROM tb_m_educations ORDER BY id DESC", connection);
-
-                int id = Convert.ToInt32(command.ExecuteScalar());
-                connection.Close();
-
-                return id;
-            }
-        }
-
-        public static void CetakEmployee()
-        {
-            var employee = new Employees();
-            var profiling = new Profilings();
-            var education = new Educations();
-            var university = new Universities();
-
-            //Employee
-            Console.Write("NIK : ");
-            var niks = Console.ReadLine();
-            employee.nik = niks;
-
-            Console.Write("First Name : ");
-            employee.first_name = Console.ReadLine();
-
-            Console.Write("Last Name : ");
-            employee.last_name = Console.ReadLine();
-
-            Console.Write("Birthdate  : ");
-            employee.birthdate = DateTime.Parse(Console.ReadLine());
-
-            Console.Write("Gender  : ");
-            employee.gender = Console.ReadLine();
-
-            Console.Write("Hiring Date  : ");
-            employee.hiring_date = DateTime.Parse(Console.ReadLine());
-
-            Console.Write("Email  : ");
-            employee.email = Console.ReadLine();
-
-            Console.Write("Phone Number  : ");
-            employee.phone_number = Console.ReadLine();
-
-            Console.Write("Department ID  : ");
-            employee.department_id = Console.ReadLine();
-
-            //Education
-            Console.Write("Major  :  ");
-            education.major = Console.ReadLine();
-
-            Console.Write("Degree  :  ");
-            education.degree = Console.ReadLine();
-
-            Console.Write("GPA  :  ");
-            education.gpa = Console.ReadLine();
-
-            Console.Write("University Name  :  ");
-            education.major = Console.ReadLine();
-
-            var result = Employees.InsertEmployee(employee);
-            if (result > 0)
-            {
-                Console.WriteLine("Insert Success");
-            }
-            else
-            {
-                Console.WriteLine("Insert Faied");
-            }
-
-            Universities.InsertUniversity(university);
-
-            education.university_id = GetEdUnId(1);
-            Educations.InsertEducation(education);
-
-            profiling.employee_id = GetIdEmp(niks);
-            profiling.education_id = GetEdUnId(2);
-            Profilings.InsertProfiling(profiling);
+            return new List<Employee>();
         }
     }
 }

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Testing
+namespace Testing.Model
 {
-    public class Departments
+    public class Role
     {
-        public string id {  get; set; }
+        public int id { get; set; }
         public string name { get; set; }
     }
 }
